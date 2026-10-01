@@ -44,13 +44,52 @@ docker compose logs -f
 ```
 
 ### 2. Pokretanje bez Dockera (preko Pythona)
-```bash
-# Pokretanje (testni mod na portu 5053 za DNS, 8000 za Web):
-./.venv/bin/python3 run.py --dns-port 5053 --web-port 8000
 
-# Produkcijski mod na portu 53:
-sudo ./.venv/bin/python3 run.py --dns-port 53 --web-port 8000
+Ako ne koristite Docker, potrebno je pripremiti Python okruženje (preporučeno Python 3.10 ili noviji):
+
+#### Korak 1: Kreiranje i aktivacija virtualnog okruženja
+```bash
+# Na Linux / macOS:
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Na Windows (PowerShell / Command Prompt):
+python -m venv .venv
+.venv\Scripts\activate
 ```
+
+#### Korak 2: Instalacija ovisnosti
+```bash
+pip install -r backend/requirements.txt
+```
+
+#### Korak 3: Pokretanje aplikacije
+```bash
+# Testni način rada (DNS na portu 5053, Web na portu 8000 - ne zahtijeva administratorske ovlasti):
+python run.py --dns-port 5053 --web-port 8000
+
+# Produkcijski način rada (DNS na standardnom portu 53):
+# Na Linuxu zahtijeva root/sudo:
+sudo python run.py --dns-port 53 --web-port 8000
+# Na Windowsima pokrenite terminal kao Administrator:
+python run.py --dns-port 53 --web-port 8000
+```
+
+---
+
+### 3. 📦 Izrada samostalne Windows `.exe` aplikacije (PyInstaller)
+
+Ako želite pokretati ExamGuard na Windows računalu bez instalacije Pythona i bez Dockera, možete ga zapakirati u samostalnu aplikaciju:
+
+1. Aktivirajte virtualno okruženje i instalirajte PyInstaller:
+   ```cmd
+   pip install pyinstaller
+   ```
+2. Pokrenite naredbu za pakiranje:
+   ```cmd
+   pyinstaller --noconfirm --onefile --name "ExamGuard" --add-data "frontend;frontend" run.py
+   ```
+   *(Generirani `ExamGuard.exe` nalazit će se u mapi `dist/` i može se odmah pokrenuti).*
 
 ---
 
@@ -63,9 +102,9 @@ sudo ./.venv/bin/python3 run.py --dns-port 53 --web-port 8000
 ---
 
 ## 🧪 Simulator učionice (Testiranje)
-Za brzu demonstraciju rada sustava bez spajanja stvarnih računala:
+Za brzu demonstraciju rada sustava bez spajanja stvarnih računala (u aktivnom virtualnom okruženju):
 ```bash
-./.venv/bin/python3 scripts/simulate_exam.py
+python scripts/simulate_exam.py
 ```
 Ova skripta simulira 4 studenta koji se prijavljuju preko portala te šalju dozvoljene (Moodle) i zabranjene (ChatGPT, Claude, Google) upite. Otvorite nadzornu ploču u pregledniku i promatrajte događaje uživo!
 

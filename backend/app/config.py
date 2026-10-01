@@ -1,9 +1,18 @@
 import os
+import sys
 from pathlib import Path
 
-# Base Paths
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DB_PATH = os.getenv("EXAMGUARD_DB", str(BASE_DIR / "examguard.db"))
+# Base Paths & PyInstaller compatibility
+if getattr(sys, "frozen", False):
+    # Pokrenuto kao PyInstaller bundle (privremeni ekstrahirani folder za frontend)
+    BASE_DIR = Path(sys._MEIPASS)
+    # Baza podataka se sprema trajno u direktorij gdje se nalazi sam .exe
+    EXE_DIR = Path(sys.executable).resolve().parent
+    DB_PATH = os.getenv("EXAMGUARD_DB", str(EXE_DIR / "examguard.db"))
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent.parent
+    DB_PATH = os.getenv("EXAMGUARD_DB", str(BASE_DIR / "examguard.db"))
+
 FRONTEND_DIR = BASE_DIR / "frontend"
 
 # Network & Server Settings

@@ -44,8 +44,10 @@ def main():
     print("=" * 65)
     print("Pokretanje poslužitelja...\n")
 
+    from backend.app.main import app
+
     uvicorn.run(
-        "backend.app.main:app",
+        app,
         host=args.web_host,
         port=args.web_port,
         log_level="info",
