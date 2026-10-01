@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studentska prijava na ispit - ExamGuard</title>
+  <meta name="description" content="Portal za prijavu i identifikaciju studenta na ispitnom računalu.">
+  <link rel="stylesheet" href="/static/css/student.css">
+</head>
+<body>
+
+  <main class="student-portal-card" id="student-portal-card">
+    
+    <header class="portal-header">
+      <div class="portal-logo-wrap" id="portal-logo">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+        </svg>
+      </div>
+      <h1 id="portal-exam-title">Digitalni Ispit</h1>
+      <p>Prijava i identifikacija radne stanice</p>
+    </header>
+
+    <!-- Detected Workstation Card -->
+    <div class="detected-station-box" id="detected-station-box">
+      <div>
+        <div class="station-label">Vaša radna stanica</div>
+        <div class="station-title" id="detected-station-title">Učitavanje stanice...</div>
+      </div>
+      <span class="station-ip-pill" id="detected-station-ip">127.0.0.1</span>
+    </div>
+
+    <!-- Countdown Timer Notice -->
+    <div id="checkin-timer-notice" style="display: none; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-md); padding: 0.75rem 1rem; text-align: center; color: #fcd34d; font-weight: 600; margin-bottom: 1.25rem;">
+      🕒 Prijava otvorena još: <span id="student-timer-display" style="font-family: 'JetBrains Mono', monospace; font-size: 1.125rem; font-weight: 700; color: #fff;">02:00</span>
+    </div>
+
+    <!-- Check-in Form View -->
+    <div id="form-container">
+      <form class="student-form" id="student-checkin-form">
+        <div class="field-group">
+          <label for="student-name">Ime i Prezime:</label>
+          <input type="text" id="student-name" class="input-field" placeholder="Npr. Marko Marić" required autocomplete="name">
+        </div>
+
+        <div class="field-group">
+          <label for="student-id">Broj indeksa / JMBAG:</label>
+          <input type="text" id="student-id" class="input-field" placeholder="Npr. 0036123456" required>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">Potvrdi prijavu na ispit</button>
+      </form>
+
+      <div class="portal-notice">
+        ⚠️ <strong>Važna napomena:</strong> Tijekom ispita nadzire se mrežni promet. Korištenje nedozvoljenih stranica, umjetne inteligencije i tražilica je strogo zabranjeno i automatski se bilježi.
+      </div>
+    </div>
+
+    <!-- Success View (Hidden by default) -->
+    <div id="success-container" class="success-view" style="display: none;">
+      <div class="success-icon-wrap">
+        ✓
+      </div>
+      <div>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: #fff;">Uspješno ste prijavljeni!</h2>
+        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;" id="confirmed-student-name">Marko Marić</p>
+        <p style="color: var(--accent-emerald); font-size: 0.8125rem; font-weight: 600; margin-top: 0.25rem;" id="confirmed-station-name">Radna stanica #01</p>
+      </div>
+
+      <div class="exam-rules-box">
+        <p><strong>Status ispita:</strong> Vaša radna stanica je evidentirana kod profesora.</p>
+        <p style="margin-top: 0.5rem;">Sada možete otvoriti vaš ispitni portal (Moodle) i pristupiti rješavanju. Sretno!</p>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="/static/js/student.js"></script>
+</body>
+</html>

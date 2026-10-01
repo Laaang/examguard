@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExamGuard DNS - Nadzorna ploča za profesore</title>
+  <meta name="description" content="Sustav za nadzor i kontrolu mrežnih DNS upita tijekom ispita.">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-logo" id="app-logo">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="brand-title">ExamGuard DNS</h2>
+        <span class="brand-subtitle">Nadzor i zaštita ispita u učionici</span>
+      </div>
+    </div>
+
+    <div class="header-status-group">
+      <div class="status-pill" id="connection-status-pill">
+        <span class="pulse-dot online"></span>
+        <span id="connection-status-text">MREŽA AKTIVNA</span>
+      </div>
+
+      <div class="status-pill" style="font-family: var(--font-mono); color: var(--text-secondary);">
+        <span id="live-clock">--:--:--</span>
+      </div>
+
+      <div class="header-controls">
+        <button class="icon-btn active" id="btn-sound-toggle" title="Uključi / Isključi zvuk">
+          <!-- Dynamically populated via sound.js -->
+        </button>
+
+        <button class="btn btn-secondary" id="btn-rules-modal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Pravila filtriranja
+        </button>
+
+        <button class="btn btn-secondary" id="btn-export-csv">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Izvoz CSV
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-layout">
+
+    <!-- Session Control Banner -->
+    <section class="session-banner" id="session-banner">
+      <div class="session-banner-top">
+        <div class="session-info">
+          <div class="session-title-wrap">
+            <h1 id="exam-session-title">Ispit iz Računalnih Mreža</h1>
+            <div class="session-meta">
+              <span class="session-badge badge-active" id="session-status-badge">ČEKANJE</span>
+              <span class="session-badge" id="session-phase-badge" style="background: rgba(99, 102, 241, 0.2); color: var(--accent-indigo);">FAZA: ČEKANJE</span>
+              <span>DNS Port: <strong style="color: var(--accent-cyan);">5053</strong></span>
+              <span>LAN Poslužitelj: <strong>192.168.8.112</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode Switcher -->
+        <div class="session-mode-selector" id="mode-selector">
+          <button class="mode-btn active" data-mode="whitelist" id="mode-btn-whitelist">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Strogi Whitelist
+          </button>
+          <button class="mode-btn" data-mode="blacklist" id="mode-btn-blacklist">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            Blacklist način
+          </button>
+          <button class="mode-btn" data-mode="monitor" id="mode-btn-monitor">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Samo nadzor
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Controls Row -->
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <button class="btn btn-primary" id="btn-start-checkin" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 0 15px rgba(245, 158, 11, 0.35);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="checkin-btn-text">Otvori prijavu studenata (2 min)</span>
+          </button>
+
+          <button class="btn btn-primary" id="btn-start-exam" style="background: linear-gradient(135deg, var(--accent-emerald), #059669); box-shadow: 0 0 15px rgba(16, 185, 129, 0.35);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Započni ispit
+          </button>
+
+          <button class="btn btn-danger" id="btn-stop-exam">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"/></svg>
+            Zaustavi ispit
+          </button>
+        </div>
+
+        <button class="btn btn-secondary" id="btn-reset-classroom" style="border-color: rgba(244, 63, 94, 0.4); color: #fca5a5;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Novi ispit (Očisti učionicu)
+        </button>
+      </div>
+    </section>
+
+    <!-- Key Metrics Cards -->
+    <section class="metrics-grid" id="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-info">
+          <h4>Ukupno DNS upita</h4>
+          <div class="metric-number" id="metric-total-queries">0</div>
+        </div>
+        <div class="metric-icon" style="color: var(--accent-indigo);">📡</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <h4>Dozvoljeni upiti</h4>
+          <div class="metric-number" id="metric-allowed-queries" style="color: var(--accent-emerald);">0</div>
+        </div>
+        <div class="metric-icon" style="color: var(--accent-emerald);"></div>
+      </div>
+
+      <div class="metric-card violation-card">
+        <div class="metric-info">
+          <h4>Blokirano / Pokušaji varanja</h4>
+          <div class="metric-number" id="metric-blocked-queries" style="color: var(--accent-rose);">0</div>
+        </div>
+        <div class="metric-icon" style="color: var(--accent-rose);">⛔</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-info">
+          <h4>Prijavljeni studenti</h4>
+          <div class="metric-number" id="metric-students-count" style="color: var(--accent-cyan);">0 / 0</div>
+        </div>
+        <div class="metric-icon" style="color: var(--accent-cyan);">🎓</div>
+      </div>
+    </section>
+
+    <!-- Classroom Live Grid -->
+    <section class="classroom-section" id="classroom-section">
+      <div class="section-header">
+        <div class="section-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Nadzor radnih stanica u učionici
+        </div>
+
+        <div class="section-actions">
+          <div class="filter-tabs">
+            <button class="tab-btn active" data-tab="all" id="tab-all-students">Sve stanice</button>
+            <button class="tab-btn" data-tab="checked_in" id="tab-checked-in">Prijavljeni</button>
+            <button class="tab-btn" data-tab="unregistered" id="tab-unregistered">Neprijavljeni</button>
+            <button class="tab-btn" data-tab="violations" id="tab-violations">S prekršajima</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="classroom-grid" id="classroom-grid">
+        <!-- Station cards will be rendered dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- Live Activity Feed & Table -->
+    <section class="activity-card" id="activity-card">
+      <div class="activity-toolbar">
+        <div class="section-title" style="margin-bottom: 0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Live Activity Feed (Mrežni upiti u stvarnom vremenu)
+        </div>
+
+        <div class="toolbar-controls">
+          <div class="search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="search-logs" placeholder="Pretraži po domeni, studentu ili IP-u...">
+          </div>
+
+          <select class="form-control" id="filter-status" style="width: auto; padding: 0.5rem 0.75rem;">
+            <option value="ALL">Svi statusi</option>
+            <option value="BLOCKED">Samo blokirano (⛔)</option>
+            <option value="ALLOWED">Samo dozvoljeno ()</option>
+          </select>
+
+          <button class="icon-btn" id="btn-pause-scroll" title="Pauziraj strujanje tablice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="dns-table">
+          <thead>
+            <tr>
+              <th>Vrijeme</th>
+              <th>Radna stanica</th>
+              <th>Student (Identitet)</th>
+              <th>Tražena domena</th>
+              <th>Tip</th>
+              <th>Status</th>
+              <th>Razlog</th>
+            </tr>
+          </thead>
+          <tbody id="dns-log-tbody">
+            <!-- Dynamically populated via WebSocket in app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Rules Management Modal -->
+  <div class="modal-overlay" id="rules-modal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Postavke pravila filtriranja</h3>
+        <button class="icon-btn" id="modal-close-btn" style="border: none;">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Add Rule Form -->
+        <form id="add-rule-form">
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="new-rule-domain" class="form-control" style="flex: 2;" placeholder="Npr. moodle.hr ili *.skola.hr" required>
+            <select id="new-rule-type" class="form-control" style="flex: 1;">
+              <option value="whitelist">Whitelist (Dozvoli)</option>
+              <option value="blacklist">Blacklist (Blokiraj)</option>
+            </select>
+            <button type="submit" class="btn btn-primary" id="btn-submit-rule">Dodaj</button>
+          </div>
+        </form>
+
+        <!-- Whitelist Section -->
+        <div>
+          <h4 style="font-size: 0.875rem; color: var(--accent-emerald); margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 700;">
+             Aktivna Whitelist pravila (Dozvoljeno)
+          </h4>
+          <div id="modal-whitelist-items" style="display: flex; flex-direction: column; gap: 0.375rem; max-height: 140px; overflow-y: auto;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+
+        <!-- Blacklist Section -->
+        <div>
+          <h4 style="font-size: 0.875rem; color: var(--accent-rose); margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 700;">
+            ⛔ Aktivna Blacklist pravila (Zabranjeno)
+          </h4>
+          <div id="modal-blacklist-items" style="display: flex; flex-direction: column; gap: 0.375rem; max-height: 140px; overflow-y: auto;">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('rules-modal').classList.remove('open')">Zatvori</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/static/js/sound.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
